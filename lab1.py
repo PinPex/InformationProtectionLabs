@@ -72,7 +72,7 @@ def diffie_hellman_algorithm():
 
 
 def giant_baby_step(a, p, y):
-    k = m = ceil(sqrt(p + 1))
+    k = m = math.ceil(math.sqrt(p + 1))
 
     baby = {pow_mod(a, j, p) * y % p: j for j in range(m)}
     giant = [pow_mod(a, (m * i), p) for i in range(1, k + 1)]
