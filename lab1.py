@@ -1,6 +1,5 @@
 import random
-
-from math import sqrt, ceil
+import math
 
 
 def is_prime(n):
