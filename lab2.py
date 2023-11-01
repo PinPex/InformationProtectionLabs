@@ -1,13 +1,12 @@
 from lab1 import *
+import sys
 
 keys = {}
 
 def generate_coprime(p):
     result = random.randint(2, p)
-    # print(result)
     while math.gcd(p, result) != 1:
         result = random.randint(2, p)
-        # print(result)
     return result
 
 def convert_str_ascii(s):
@@ -21,20 +20,15 @@ def Shamir_encode(m) -> list:
     result = list()
 
     p = get_prime(0, 10 ** 9)
-    #print("p = ", p)
     Ca = generate_coprime(p - 1)
-    #print("Ca = ", Ca)
     Da = extended_euclidean_algorithm(p - 1, Ca)[2]
     if Da < 0:
         Da += p - 1
-    #print("Da = ", Da)
 
     Cb = generate_coprime(p - 1)
-    #print("Cb = ", Cb)
     Db = extended_euclidean_algorithm(p - 1, Cb)[2]
     if Db < 0:
         Db += p - 1
-    #print("Db = ", Db)
     keys['shamir'] = {'p': p, 'Ca': Ca, 'Da': Da, 'Cb': Cb, 'Db': Db}
 
     for part in m:
@@ -42,9 +36,6 @@ def Shamir_encode(m) -> list:
         x2 = pow_mod(x1, Cb, p)
         x3 = pow_mod(x2, Da, p)
         result.append(x3)
-        # print("x1 = ", x1)
-        # print("x2 = ", x2)
-        # print("x3 = ", x3)
     return result
 
 def Shamir_decode(x3) -> list:
@@ -52,90 +43,77 @@ def Shamir_decode(x3) -> list:
     p = keys["shamir"]["p"]
     Db = keys["shamir"]["Db"]
     for part in x3:
-        # print(part)
         x4 = pow_mod(part, Db, p)
         result.append(x4)
-        # print("x4 = ", x4)
     return result
 
 def ElGamal_encode(m) -> list:
     result = list()
-    g = 0
+    g = 1
+
+    p = get_prime(0, 10 ** 9)
+
     while True:
         q = get_prime(0, 10 ** 9)
         p = 2 * q + 1
         if is_prime(p):
             break
-    #print("p = ", p)
-    while pow_mod(g, q, p) != 1:
+
+    while pow_mod(g, q, p) == 1:
         g = random.randint(2, p - 1)
 
-    #print("g = ", g)
-    x = get_prime(0, p - 1)
-    #print("x = ", x)
-    y = pow_mod(g, x, p)
-    #print("y = ", y)
+    Cb = get_prime(0, p - 1)
+    Db = pow_mod(g, Cb, p)
 
-    k = get_prime(0, p - 2)
-    #print("k = ", k)
-    a = pow_mod(g, k, p)
-    #print("a = ", a)
-    keys['gamal'] = {'p': p, 'g': g, 'x': x, 'y': y, 'k': k, 'a': a}
+    Ka = get_prime(0, p - 2)
+    Ra = pow_mod(g, Ka, p)
+
+    keys['gamal'] = {'p': p, 'g': g, 'Cb': Cb, 'Db': Db, 'Ka': Ka, 'Ra': Ra}
     for part in m:
-        # print(part)
-        b = (part * pow_mod(y, k, p)) % p
+        b = (part * pow_mod(Db, Ka, p)) % p
         result.append(b)
-        # print("b = ", b)
     return result
 
 def ElGamal_decode(b) -> list:
     result = list()
     p = keys["gamal"]["p"]
-    x = keys["gamal"]["x"]
-    a = keys["gamal"]["a"]
+    Cb = keys["gamal"]["Cb"]
+    Ra = keys["gamal"]["Ra"]
     for part in b:
-        # print(part)
-        m1 = (part * pow_mod(a, p - 1 - x, p)) % p
+        m1 = (part * pow_mod(Ra, p - 1 - Cb, p)) % p
         result.append(m1)
-        # print("m1 = ", m1)
     return result
 
 def RSA_encode(m) -> list:
     result = list()
 
-    P = get_prime(0, 10 ** 9)
-    #print("P = ", P)
-    Q = get_prime(0, 10 ** 9)
-    #print("Q = ", Q)
-    N = P * Q
-    #print("N = ", N)
-    Phi = (P - 1) * (Q - 1)
-    #print("Phi = ", Phi)
-    d = generate_coprime(Phi)
-    #print("d = ", d)
-    # d = 3
-    c = extended_euclidean_algorithm(d, Phi)[1]
-    if c < 0:
-        c += Phi
-    #print("c = ", c)
+    while True:
+        Pb = get_prime(0, 10 ** 9)
+        Qb = get_prime(0, 10 ** 9)
+        if Pb != Qb:
+            break
 
-    keys['RSA'] = {'c': c, 'N': N}  # 'P': P, 'Q': Q, 'Phi': Phi, 'd': d}
+    Nb = Pb * Qb
+    PhiB = (Pb - 1) * (Qb - 1)
+    Db = generate_coprime(PhiB)
+    Cb = extended_euclidean_algorithm(Db, PhiB)[1]
+
+    if Cb < 0:
+        Cb += PhiB
+
+    keys['RSA'] = {'Cb': Cb, 'Nb': Nb}
     for part in m:
-        # print(part)
-        e = pow_mod(part, d, N)
+        e = pow_mod(part, Db, Nb)
         result.append(e)
-        # print("e = ", e)
     return result
 
 def RSA_decode(e) -> list:
     result = list()
-    c = keys["RSA"]["c"]
-    N = keys["RSA"]["N"]
+    Cb = keys["RSA"]["Cb"]
+    Nb = keys["RSA"]["Nb"]
     for part in e:
-        # print(part)
-        m1 = pow_mod(part, c, N)
+        m1 = pow_mod(part, Cb, Nb)
         result.append(m1)
-    #print("m1 = ", m1)
     return result
 
 def Vernam_encode(m) -> list:
@@ -148,7 +126,6 @@ def Vernam_decode(e) -> list:
     return [e[i] ^ codes[i] for i in range(len(e))]
 
 def coding_print(encode_function, decode_function, message):
-
     print(f"Исходное сообщение: '{message}'")
 
     print(f"Название функции кодирования: {encode_function.__name__}")
@@ -159,14 +136,42 @@ def coding_print(encode_function, decode_function, message):
     decoded = convert_ascii_str(decode_function(encoded))
     print(f"Декодированное сообщение: '{decoded}'")
 
+    return (message, encoded, decoded)
+
+def read_file(filename: str) -> bytearray:
+    with open(filename, 'rb') as origin_file:
+        return bytearray(origin_file.read())
+
+def write_bytes_to_file(data, file_name):
+    file = open(file_name, "wb")
+
+    for byte in data:
+        file.write(byte.to_bytes(1, sys.byteorder))
+
+def write_to_file(data, file_name):
+    with open(file_name, "w") as file:
+        print(data, file=file)
+
 def lab2_launch():
-    message = "Hello world!"
+    message = read_file("котята.jpg")
     # Shamir
-    coding_print(Shamir_encode, Shamir_decode, message)
+    encode = Shamir_encode(message)
+    write_to_file(encode, "котята_encoded_Shamir.txt")
+    decode = Shamir_decode(encode)
+    write_bytes_to_file(decode, "котята_decoded_Shamir.jpg")
     # RSA
-    coding_print(RSA_encode, RSA_decode, message)
+    encode = RSA_encode(message)
+    write_to_file(encode, "котята_encoded_RSA.txt")
+    decode = RSA_decode(encode)
+    write_bytes_to_file(decode, "котята_decoded_RSA.jpg")
     # ElGamal
-    coding_print(ElGamal_encode, ElGamal_decode, message)
+    encode = ElGamal_encode(message)
+    write_to_file(encode, "котята_encoded_ElGamal.txt")
+    decode = ElGamal_decode(encode)
+    write_bytes_to_file(decode, "котята_decoded_ElGamal.jpg")
     # Vernam
-    coding_print(Vernam_encode, Vernam_decode, message)
+    encode = Vernam_encode(message)
+    write_to_file(encode, "котята_encoded_Vernam.txt")
+    decode = Vernam_decode(encode)
+    write_bytes_to_file(decode, "котята_decoded_Vernam.jpg")
 
