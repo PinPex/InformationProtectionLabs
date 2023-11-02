@@ -4,12 +4,6 @@ import hashlib
 import random
 import sys
 
-class GOST_global_keys:
-    def __init__(self, p, q, a):
-        self.p = p
-        self.q = q
-        self.a = a
-
 
 def generate_ElGamal_global_keys():
     g = 0
