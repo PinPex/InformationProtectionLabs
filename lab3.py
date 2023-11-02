@@ -1,9 +1,7 @@
 from lab1 import *
-from lab2 import generate_coprime, convert_ascii_str, convert_str_ascii
+from lab2 import generate_coprime
 import hashlib
 import random
-import sys
-
 
 def generate_ElGamal_global_keys():
     g = 0
