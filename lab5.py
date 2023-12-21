@@ -8,7 +8,7 @@ from lab2 import generate_coprime
 def inverse(n, p):
     gcd, inv, _ = extended_euclidean_algorithm(n, p)
     assert gcd == 1
-    if inv < 0 :
+    if inv < 0:
         inv += p
     return inv
 
@@ -38,13 +38,13 @@ class Server:
         self._voted = set()
         self.votes = list()
 
-        print(f"\t{p = }",
-              f"\t{q = }",
-              f"\t{phi = }",
+        print(f"{p = }",
+              f"{q = }",
+              f"{phi = }",
               '-' * 10,
-              f"\t{self.n = }",
-              f"\t{self.d = }",
-              f"\t{self._c = }",
+              f"{self.n = }",
+              f"{self.d = }",
+              f"{self._c = }",
               '*' * 30,
               "[SERVER] Сервер запущен",
               sep='\n'
@@ -66,14 +66,11 @@ class Server:
         _, _, hash_10 = get_hash(n)
 
         if hash_10 == pow_mod(s, self.d, self.n):
-            #self.votes.append(n % 10)
             self.votes.append((n, s))
-            # print(f'[SERVER] Полученный бюллетень <{n}, {s}> успешно прошел проверку и был принят')
             print(f'[SERVER] Полученный бюллетень успешно прошел проверку и был принят')
 
             return True
         else:
-            # print(f'[SERVER] Полученный бюллетень <{n}, {s}> не прошел проверку и был отклонён')
             print(f'[SERVER] Полученный бюллетень не прошел проверку и был отклонён')
             print(f"\t{hash_10} = ", f"\t{pow_mod(s, self.d, self.n)} = ", sep='\n')
             return False
@@ -86,6 +83,14 @@ class Server:
             votes[VOTE(n & ((1 << len(VOTE)) - 1))] += 1
         print("[SERVER] Текущие итоги голосования:")
         print(*(f"\t{key.name} = {value}" for key, value in votes.items()), sep='\n')
+
+    def vote_table(self):
+        print("№\tn\ts")
+        for i in range(len(self.votes)):
+            h1 = hash(self.votes[i][0])
+            h2 = hash(self.votes[i][1])
+            print(f"{i + 1}\t{h1}\t{h2}")
+
 
 
 class Client:
@@ -122,10 +127,6 @@ class Client:
 
 
 
-
-
-
-
 def lab5_launch():
     server = Server()
 
@@ -144,7 +145,7 @@ def lab5_launch():
     client = Client(server, 'Иваныч')
     client.vote(VOTE.ABSTAIN)
 
-    server.voting_results()
+    server.vote_table()
 
     client = Client(server, 'Иваныч')
     client.vote(VOTE.ABSTAIN)
@@ -152,4 +153,4 @@ def lab5_launch():
     client = Client(server, 'Петрович')
     client.vote(VOTE.ABSTAIN)
 
-    server.voting_results()
+    server.vote_table()
